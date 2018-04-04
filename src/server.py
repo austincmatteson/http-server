@@ -5,7 +5,9 @@ from cowpy import cow
 
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
+    """Handle requests."""
     def do_GET(self):
+        """Set up routes."""
         parsed_path = urlparse(self.path)
         parsed_qs = parse_qs(parsed_path.query)
 
@@ -49,10 +51,10 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(display.encode('utf-8'))
                 return
-            except json.decoder.JSONDecodeError:
+            except KeyError:
                 self.send_response(400)
                 self.end_headers()
-                self.wfile.write(b'"Put your message in quotes, like this."')
+                self.wfile.write(b'Use msg as the querystring key.')
                 return
 
         else:
@@ -61,10 +63,11 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b'Not Found')
 
     def do_POST(self):
+        """Post json."""
         parsed_path = urlparse(self.path)
         parsed_qs = parse_qs(parsed_path.query)
         cat = cow.Meow()
-        display = cat.milk('Working API?')
+        display = cat.milk('Working API? Use msg as the query string key')
         post_dict = {'content': None}
 
         if parsed_path.path == '/cow':
@@ -75,7 +78,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps(post_dict).encode('utf-8'))
                 return
-            except json.decoder.JSONDecodeError:
+            except KeyError:
                 self.send_response(400)
                 self.end_headers()
                 self.wfile.write(display.encode('utf-8'))
@@ -88,10 +91,12 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
 
 def create_server():
+    """Set endpoint of server."""
     return HTTPServer(('127.0.0.1', 3000), SimpleHTTPRequestHandler)
 
 
 def run_forever():
+    """Run server until keyboard shutdown."""
     server = create_server()
 
     try:
